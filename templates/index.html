@@ -1,0 +1,139 @@
+{{template "page_start" .}}
+
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-xl md:text-2xl font-bold text-gray-900">分销员看板</h1>
+	<button onclick="document.getElementById('newForm').classList.toggle('hidden')"
+		class="bg-blue-600 text-white px-4 py-2.5 md:py-2 rounded-lg hover:bg-blue-700 text-sm active:bg-blue-800">
+		+ 新建
+	</button>
+</div>
+
+<div id="newForm" class="hidden bg-white rounded-xl shadow-sm border p-4 mb-6">
+	<form method="POST" action="/distributor/new" class="flex flex-col md:flex-row gap-3">
+		<div class="flex-1">
+			<label class="block text-sm font-medium text-gray-600 mb-1">名称</label>
+			<input type="text" name="name" required class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		</div>
+		<div class="flex-1">
+			<label class="block text-sm font-medium text-gray-600 mb-1">备注</label>
+			<input type="text" name="remark" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+		</div>
+		<button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 text-sm md:self-end">创建</button>
+	</form>
+</div>
+
+{{if not .rows}}
+<div class="bg-white rounded-xl shadow-sm border p-12 text-center text-gray-400">
+	暂无分销员，点击上方按钮创建
+</div>
+{{else}}
+
+<div class="hidden md:block overflow-x-auto bg-white rounded-xl shadow-sm border">
+	<table class="w-full text-sm">
+		<thead>
+			<tr class="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+				<th class="text-left px-4 py-3">分销员</th>
+				<th class="text-center px-4 py-3">链接</th>
+				<th class="text-center px-4 py-3">总码</th>
+				<th class="text-center px-4 py-3">核销</th>
+				<th class="text-center px-4 py-3">独立用户</th>
+				<th class="text-center px-4 py-3">总流水</th>
+				<th class="text-center px-4 py-3">30%佣金</th>
+				<th class="text-center px-4 py-3">核销率</th>
+				<th class="text-center px-4 py-3">状态</th>
+				<th class="text-right px-4 py-3">操作</th>
+			</tr>
+		</thead>
+		<tbody class="divide-y">
+			{{range .rows}}
+			<tr class="hover:bg-gray-50 {{if ne .SettledAt "-"}}opacity-60{{end}}">
+				<td class="px-4 py-3">
+					<div class="font-medium text-gray-900">{{.Name}}</div>
+					{{if .Remark}}<div class="text-xs text-gray-400">{{.Remark}}</div>{{end}}
+				</td>
+				<td class="px-4 py-3 text-center">
+					{{$link := printf "%s/dist/%s" $.baseURL .Key}}
+					<a href="{{$link}}" target="_blank" class="text-blue-500 hover:text-blue-700 text-xs underline">{{$link}}</a>
+				</td>
+				<td class="px-4 py-3 text-center font-mono">{{.TotalCodes}}</td>
+				<td class="px-4 py-3 text-center font-mono">{{.RedeemedCodes}}</td>
+				<td class="px-4 py-3 text-center font-mono {{if and (gt .RedeemedCodes 0) (eq .UniqueUsers 1)}}text-red-600 font-bold{{end}}">
+					{{.UniqueUsers}}
+					{{if and (gt .RedeemedCodes 5) (eq .UniqueUsers 1)}}
+					<span class="ml-1 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">⚠️</span>
+					{{end}}
+				</td>
+				<td class="px-4 py-3 text-center font-mono">{{.TotalConsume}}</td>
+				<td class="px-4 py-3 text-center font-mono text-green-700 font-semibold">{{.Commission}}</td>
+				<td class="px-4 py-3 text-center">{{.Rate}}</td>
+				<td class="px-4 py-3 text-center">
+					{{if ne .SettledAt "-"}}
+					<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs">已结算</span>
+					{{else}}
+					<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">进行中</span>
+					{{end}}
+				</td>
+				<td class="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+					<a href="/distributor/{{.Id}}/import" class="inline-block bg-gray-100 text-gray-600 px-2.5 py-1 rounded hover:bg-gray-200 text-xs">导入</a>
+					<a href="/distributor/{{.Id}}" class="inline-block bg-blue-100 text-blue-600 px-2.5 py-1 rounded hover:bg-blue-200 text-xs">详情</a>
+					{{if eq .SettledAt "-"}}
+					<form method="POST" action="/distributor/{{.Id}}/settle" class="inline" onsubmit="return confirm('确认结清？')">
+						<button class="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded hover:bg-yellow-200 text-xs">结清</button>
+					</form>
+					{{end}}
+					<form method="POST" action="/distributor/{{.Id}}/delete" class="inline" onsubmit="return confirm('确认删除？')">
+						<button class="bg-red-100 text-red-600 px-2.5 py-1 rounded hover:bg-red-200 text-xs">删除</button>
+					</form>
+				</td>
+			</tr>
+			{{end}}
+		</tbody>
+	</table>
+</div>
+
+<div class="md:hidden space-y-3">
+	{{range .rows}}
+	<div class="bg-white rounded-xl shadow-sm border p-4 {{if ne .SettledAt "-"}}opacity-60{{end}}">
+		<div class="flex items-start justify-between mb-2">
+			<div>
+				<div class="font-semibold text-gray-900">{{.Name}}</div>
+				{{if .Remark}}<div class="text-xs text-gray-400">{{.Remark}}</div>{{end}}
+			</div>
+			{{if ne .SettledAt "-"}}
+			<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs">已结算</span>
+			{{else}}
+			<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">进行中</span>
+			{{end}}
+		</div>
+		{{$link := printf "%s/dist/%s" $.baseURL .Key}}
+		<div class="text-xs text-blue-500 truncate mb-3"><a href="{{$link}}" target="_blank">{{$link}}</a></div>
+		<div class="grid grid-cols-4 gap-2 mb-3 text-center text-xs">
+			<div><div class="font-bold font-mono text-base">{{.TotalCodes}}</div><div class="text-gray-400">总码</div></div>
+			<div><div class="font-bold font-mono text-base text-green-700">{{.RedeemedCodes}}</div><div class="text-gray-400">核销</div></div>
+			<div><div class="font-bold font-mono text-base {{if and (gt .RedeemedCodes 0) (eq .UniqueUsers 1)}}text-red-600{{end}}">{{.UniqueUsers}}</div><div class="text-gray-400">用户</div></div>
+			<div><div class="font-bold font-mono text-base">{{.Rate}}</div><div class="text-gray-400">核销率</div></div>
+		</div>
+		<div class="flex items-center justify-between text-sm mb-3">
+			<span class="text-gray-500">流水: <span class="font-mono font-semibold">{{.TotalConsume}}</span></span>
+			<span class="text-green-700 font-semibold">佣金: <span class="font-mono">{{.Commission}}</span></span>
+		</div>
+		{{if and (gt .RedeemedCodes 5) (eq .UniqueUsers 1)}}
+		<div class="text-xs bg-red-50 text-red-600 p-2 rounded-lg mb-3 text-center font-medium">⚠️ 疑似诈骗</div>
+		{{end}}
+		<div class="flex gap-2">
+			<a href="/distributor/{{.Id}}/import" class="flex-1 text-center bg-gray-100 text-gray-600 py-2 rounded-lg active:bg-gray-200 text-sm">导入</a>
+			<a href="/distributor/{{.Id}}" class="flex-1 text-center bg-blue-100 text-blue-600 py-2 rounded-lg active:bg-blue-200 text-sm">详情</a>
+			{{if eq .SettledAt "-"}}
+			<form method="POST" action="/distributor/{{.Id}}/settle" class="flex-1" onsubmit="return confirm('确认结清？')">
+				<button class="w-full bg-yellow-100 text-yellow-700 py-2 rounded-lg active:bg-yellow-200 text-sm">结清</button>
+			</form>
+			{{end}}
+			<form method="POST" action="/distributor/{{.Id}}/delete" class="flex-1" onsubmit="return confirm('确认删除？')">
+				<button class="w-full bg-red-100 text-red-600 py-2 rounded-lg active:bg-red-200 text-sm">删除</button>
+			</form>
+		</div>
+	</div>
+	{{end}}
+</div>
+{{end}}
+{{template "page_end" .}}

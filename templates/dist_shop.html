@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>购买兑换码 - {{.dist.Name}}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+	<div class="max-w-lg mx-auto px-4 py-6">
+		<div class="text-center mb-6">
+			<h1 class="text-2xl font-bold text-gray-800">购买兑换码</h1>
+			<p class="text-gray-500 text-sm mt-1">{{.dist.Name}}</p>
+			<a href="/dist/{{.dist.Key}}" class="text-blue-600 text-xs hover:underline">← 返回看板</a>
+		</div>
+
+		<div class="grid grid-cols-1 gap-4">
+			{{range .products}}
+			<div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
+				<div class="flex items-center justify-between">
+					<div>
+						<h2 class="text-xl font-bold text-gray-800">{{.Name}}</h2>
+						<p class="text-sm text-gray-400 mt-1">配额 {{.Quota}} / 面值 {{money .Price}} 元</p>
+					</div>
+				</div>
+
+				<form method="POST" action="/dist/{{$.dist.Key}}/shop/buy" class="mt-4">
+					<input type="hidden" name="product_id" value="{{.Id}}">
+					<div class="flex items-center gap-3 mb-4">
+						<label class="text-sm text-gray-600">数量：</label>
+						<div class="flex items-center border rounded-lg">
+							<button type="button" onclick="decQty(this)" class="px-3 py-2 text-gray-500 hover:text-gray-700">−</button>
+							<input type="number" name="qty" value="1" min="1" max="100"
+								class="w-16 text-center py-2 text-sm border-x outline-none" readonly>
+							<button type="button" onclick="incQty(this)" class="px-3 py-2 text-gray-500 hover:text-gray-700">+</button>
+						</div>
+						<div class="text-sm text-gray-400">× {{money .Price}} 元</div>
+					</div>
+					<div class="flex gap-2">
+						<button type="submit" name="type" value="alipay"
+							class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 text-sm">
+							支付宝购买
+						</button>
+						<button type="submit" name="type" value="wxpay"
+							class="flex-1 bg-green-500 text-white py-3 rounded-xl font-medium active:bg-green-600 text-sm">
+							微信购买
+						</button>
+					</div>
+				</form>
+			</div>
+			{{else}}
+			<div class="bg-white rounded-2xl shadow-sm border p-12 text-center text-gray-400">
+				暂无商品，请联系管理员
+			</div>
+			{{end}}
+		</div>
+	</div>
+
+	<script>
+	function decQty(btn) {
+		const input = btn.closest('.flex.items-center').querySelector('input[name="qty"]');
+		let v = parseInt(input.value) || 1;
+		if (v > 1) input.value = v - 1;
+	}
+	function incQty(btn) {
+		const input = btn.closest('.flex.items-center').querySelector('input[name="qty"]');
+		let v = parseInt(input.value) || 1;
+		if (v < 100) input.value = v + 1;
+	}
+	</script>
+</body>
+</html>

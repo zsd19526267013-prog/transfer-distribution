@@ -1,0 +1,164 @@
+{{template "page_start" .}}
+
+<div class="mb-3">
+	<a href="/" class="text-blue-600 hover:text-blue-800 text-sm">&larr; 返回看板</a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border p-4 mb-6">
+	<div class="flex items-center justify-between mb-4">
+		<div>
+			<h2 class="text-lg md:text-xl font-bold text-gray-900">{{.d.Name}}</h2>
+			{{if .d.Remark}}<p class="text-xs md:text-sm text-gray-400">{{.d.Remark}}</p>{{end}}
+		</div>
+		{{if gt .d.SettledAt 0}}
+		<span class="bg-gray-100 text-gray-500 px-2.5 py-1 rounded text-xs">已结算</span>
+		{{end}}
+	</div>
+	<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+		<div class="bg-gray-50 rounded-lg p-3 text-center">
+			<div class="text-xl md:text-2xl font-bold font-mono">{{.totalCodes}}</div>
+			<div class="text-xs text-gray-500 mt-0.5">总码数</div>
+		</div>
+		<div class="bg-green-50 rounded-lg p-3 text-center">
+			<div class="text-xl md:text-2xl font-bold font-mono text-green-700">{{.redeemedCodes}}</div>
+			<div class="text-xs text-gray-500 mt-0.5">已核销</div>
+		</div>
+		<div class="bg-blue-50 rounded-lg p-3 text-center">
+			<div class="text-xl md:text-2xl font-bold font-mono text-blue-700">{{.uniqueUsers}}</div>
+			<div class="text-xs text-gray-500 mt-0.5">独立用户</div>
+		</div>
+		<div class="bg-yellow-50 rounded-lg p-3 text-center">
+			<div class="text-xl md:text-2xl font-bold font-mono text-yellow-700">
+				{{if gt .totalCodes 0}}{{percent .redeemedCodes .totalCodes}}%{{else}}-{{end}}
+			</div>
+			<div class="text-xs text-gray-500 mt-0.5">核销率</div>
+		</div>
+	</div>
+	{{if and (gt .redeemedCodes 5) (eq .uniqueUsers 1)}}
+	<div class="mt-3 p-3 bg-red-50 text-red-700 rounded-lg text-sm font-medium text-center">
+		⚠️ 告警：{{.redeemedCodes}} 个码仅 1 个独立用户核销，可能存在诈骗！
+	</div>
+	{{end}}
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border p-4 mb-6">
+	<div class="text-sm font-medium text-gray-700 mb-2">分销商链接 & 二维码</div>
+	{{$distLink := printf "%s/dist/%s" .baseURL .d.Key}}
+	<div class="flex flex-col md:flex-row items-center gap-4">
+		<div class="flex flex-col items-center gap-2">
+			<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{$distLink}}" alt="QR" class="w-36 h-36 md:w-44 md:h-44 rounded-lg">
+			<a href="/qr?data={{$distLink}}" class="text-xs text-gray-400 hover:text-blue-600 underline" download>下载二维码</a>
+		</div>
+		<div class="flex-1 min-w-0">
+			<p class="text-xs text-gray-400 mb-1">分销商扫码查看自己的数据（无需登录）</p>
+			<div class="flex items-center gap-2">
+				<input type="text" readonly value="{{$distLink}}" class="flex-1 border rounded px-2 py-1.5 text-xs font-mono bg-gray-50 min-w-0" onclick="this.select()">
+				<button onclick="navigator.clipboard.writeText('{{$distLink}}');this.textContent='已复制'" class="bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded text-xs hover:bg-gray-300 shrink-0">复制</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border mb-6">
+	<div class="px-4 py-3 border-b font-medium text-gray-700 text-sm">兑换码列表</div>
+	<div class="hidden md:block overflow-x-auto">
+		<table class="w-full text-sm">
+			<thead>
+				<tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+					<th class="text-left px-4 py-2">兑换码</th>
+					<th class="text-center px-4 py-2">状态</th>
+					<th class="text-center px-4 py-2">使用用户</th>
+					<th class="text-center px-4 py-2">兑换时间</th>
+					<th class="text-center px-4 py-2">导入时间</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y">
+				{{range .codes}}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 font-mono text-xs">{{.CodeKey}}</td>
+					<td class="px-4 py-2 text-center text-xs"><span class="px-2 py-0.5 rounded {{if eq .StatusText "已核销"}}bg-green-100 text-green-700{{else}}bg-gray-100 text-gray-500{{end}}">{{.StatusText}}</span></td>
+					<td class="px-4 py-2 text-center text-xs">{{if .UsedUserId}}{{.UsedUsername}} ({{.UsedUserId}}){{else}}-{{end}}</td>
+					<td class="px-4 py-2 text-center text-gray-500 text-xs">{{.RedeemedTime}}</td>
+					<td class="px-4 py-2 text-center text-gray-500 text-xs">{{.ImportedAt}}</td>
+				</tr>
+				{{else}}
+				<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">暂无数据</td></tr>
+				{{end}}
+			</tbody>
+		</table>
+	</div>
+	<div class="md:hidden divide-y">
+		{{range .codes}}
+		<div class="px-4 py-3 space-y-1">
+			<div class="flex items-center justify-between">
+				<code class="text-xs font-mono text-gray-800 truncate max-w-[60%]">{{.CodeKey}}</code>
+				<span class="text-xs px-2 py-0.5 rounded {{if eq .StatusText "已核销"}}bg-green-100 text-green-700{{else}}bg-gray-100 text-gray-500{{end}}">{{.StatusText}}</span>
+			</div>
+			<div class="flex items-center justify-between text-xs text-gray-400">
+				<span>{{if .UsedUserId}}{{.UsedUsername}} ({{.UsedUserId}}){{else}}未使用{{end}}</span>
+				<span>{{.RedeemedTime}}</span>
+			</div>
+		</div>
+		{{else}}
+		<div class="px-4 py-8 text-center text-gray-400 text-sm">暂无数据</div>
+		{{end}}
+	</div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border">
+	<div class="px-4 py-3 border-b font-medium text-gray-700 text-sm">核销用户流水明细（充值+消费，30%佣金）</div>
+	<div class="hidden md:block overflow-x-auto">
+		<table class="w-full text-sm">
+			<thead>
+				<tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+					<th class="text-left px-4 py-2">ID</th>
+					<th class="text-left px-4 py-2">用户名</th>
+					<th class="text-center px-4 py-2">注册时间</th>
+					<th class="text-right px-4 py-2">总流水</th>
+					<th class="text-right px-4 py-2 text-green-700">30%佣金</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y">
+				{{range .consumptions}}
+				<tr class="hover:bg-gray-50">
+					<td class="px-4 py-2 font-mono text-xs">{{.Id}}</td>
+					<td class="px-4 py-2">{{.Username}}</td>
+					<td class="px-4 py-2 text-center text-gray-500 text-xs">{{.CreatedAt}}</td>
+					<td class="px-4 py-2 text-right font-mono">{{.TotalConsumption}}</td>
+					<td class="px-4 py-2 text-right font-mono text-green-700 font-semibold">{{.Commission}}</td>
+				</tr>
+				{{else}}
+				<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">暂无流水数据</td></tr>
+				{{end}}
+			</tbody>
+		</table>
+	</div>
+	<div class="md:hidden divide-y">
+		{{range .consumptions}}
+		<div class="px-4 py-3">
+			<div class="flex items-center justify-between">
+				<span class="font-medium text-sm">{{.Username}}</span>
+				<span class="text-xs text-gray-400">ID: {{.Id}}</span>
+			</div>
+			<div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+				<span>注册: {{.CreatedAt}}</span>
+				<span>流水: <span class="font-mono font-semibold text-gray-700">{{.TotalConsumption}}</span></span>
+			</div>
+			<div class="text-right text-sm text-green-700 font-semibold mt-1">佣金: {{.Commission}}</div>
+		</div>
+		{{else}}
+		<div class="px-4 py-8 text-center text-gray-400 text-sm">暂无流水数据</div>
+		{{end}}
+	</div>
+</div>
+
+<div class="mt-6 flex flex-col md:flex-row gap-2 md:justify-end">
+	<a href="/distributor/{{.d.Id}}/import" class="block text-center bg-blue-600 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-blue-700 text-sm active:bg-blue-800">继续导入码</a>
+	{{if eq .d.SettledAt 0}}
+	<form method="POST" action="/distributor/{{.d.Id}}/settle" onsubmit="return confirm('确认结清？将清空所有码记录')">
+		<button class="w-full bg-yellow-500 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-yellow-600 text-sm active:bg-yellow-700">标记已结算</button>
+	</form>
+	{{end}}
+</div>
+
+{{template "page_end" .}}

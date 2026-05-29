@@ -1,0 +1,91 @@
+{{template "page_start" .}}
+
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-xl md:text-2xl font-bold text-gray-900">码库存管理</h1>
+	<button onclick="document.getElementById('importForm').classList.toggle('hidden')"
+		class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 text-sm">
+		+ 导入兑换码
+	</button>
+</div>
+
+{{if .msg}}
+<div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-4 text-sm">{{.msg}}</div>
+{{end}}
+
+<!-- 导入表单 -->
+<div id="importForm" class="hidden bg-white rounded-xl shadow-sm border p-4 mb-6">
+	<form method="POST" action="/stock/import">
+		<div class="mb-3">
+			<label class="block text-sm font-medium text-gray-600 mb-1">导入到商品</label>
+			<select name="product_id" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
+				<option value="">请选择</option>
+				{{range .products}}
+				<option value="{{.Id}}">{{.Name}} ({{money .Price}}元 / {{.Quota}}配额)</option>
+				{{end}}
+			</select>
+		</div>
+		<div class="mb-3">
+			<label class="block text-sm font-medium text-gray-600 mb-2">导入方式</label>
+			<label class="inline-flex items-center mr-4">
+				<input type="radio" name="method" value="auto" checked class="mr-1">
+				<span class="text-sm">从 redemptions 自动拉取</span>
+			</label>
+			<label class="inline-flex items-center">
+				<input type="radio" name="method" value="manual" class="mr-1">
+				<span class="text-sm">手动粘贴</span>
+			</label>
+		</div>
+		<div class="mb-3">
+			<label class="block text-sm font-medium text-gray-600 mb-1">兑换码（手动模式，每行一个）</label>
+			<textarea name="codes" rows="5" class="w-full border rounded-lg px-3 py-2 text-sm font-mono" placeholder="每行一个32位兑换码..."></textarea>
+		</div>
+		<button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 text-sm">导入</button>
+	</form>
+</div>
+
+<!-- 库存列表 -->
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+	<div class="p-3 bg-gray-50 text-sm text-gray-500 border-b">
+		共 {{.total}} 个码
+	</div>
+	{{if .rows}}
+	<table class="w-full text-sm">
+		<thead class="bg-gray-50 text-gray-600">
+			<tr>
+				<th class="text-left px-4 py-3">商品</th>
+				<th class="text-left px-4 py-3">兑换码</th>
+				<th class="text-left px-4 py-3">状态</th>
+				<th class="text-left px-4 py-3">导入时间</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{range .rows}}
+			<tr class="border-t hover:bg-gray-50">
+				<td class="px-4 py-3">{{.Product}}</td>
+				<td class="px-4 py-3 font-mono text-xs">{{.CodeKey}}</td>
+				<td class="px-4 py-3">
+					{{if eq .Status "available"}}<span class="text-green-600 bg-green-50 px-2 py-0.5 rounded-full text-xs">可用</span>{{end}}
+					{{if eq .Status "reserved"}}<span class="text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full text-xs">已预留</span>{{end}}
+					{{if eq .Status "sold"}}<span class="text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full text-xs">已售</span>{{end}}
+				</td>
+				<td class="px-4 py-3 text-gray-500 text-xs">{{.CreatedAt}}</td>
+			</tr>
+			{{end}}
+		</tbody>
+	</table>
+	<!-- 分页 -->
+	<div class="flex justify-center gap-2 p-4 border-t text-sm">
+		{{if gt .page 1}}
+		<a href="/stock?page={{sub .page 1}}" class="px-3 py-1 border rounded hover:bg-gray-50">上一页</a>
+		{{end}}
+		<span class="px-3 py-1 text-gray-500">第 {{.page}} / {{.totalPages}} 页</span>
+		{{if lt .page .totalPages}}
+		<a href="/stock?page={{add .page 1}}" class="px-3 py-1 border rounded hover:bg-gray-50">下一页</a>
+		{{end}}
+	</div>
+	{{else}}
+	<div class="p-12 text-center text-gray-400">暂无库存</div>
+	{{end}}
+</div>
+
+{{template "page_end"}}

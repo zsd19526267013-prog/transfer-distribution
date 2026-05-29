@@ -1,0 +1,33 @@
+{{define "page_start"}}<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>管理后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<nav class="bg-white shadow-sm border-b sticky top-0 z-10">
+	<div class="max-w-7xl mx-auto px-3 md:px-4 py-3 flex items-center justify-between">
+		<a href="/" class="text-base md:text-lg font-bold text-gray-800">管理后台</a>
+		<div class="flex items-center gap-3">
+			<span class="text-xs md:text-sm text-gray-500">内部工具</span>
+			<form method="POST" action="/logout" class="inline logout-form">
+				<button class="text-xs text-gray-400 hover:text-red-500 transition-colors">退出</button>
+			</form>
+		</div>
+	</div>
+	<div class="border-t bg-gray-50 px-3 md:px-4 py-1.5 flex gap-4 text-xs overflow-x-auto">
+		<a href="/" class="text-gray-600 hover:text-blue-600 whitespace-nowrap">分销看板</a>
+		<a href="/products" class="text-gray-600 hover:text-blue-600 whitespace-nowrap">商品管理</a>
+		<a href="/stock" class="text-gray-600 hover:text-blue-600 whitespace-nowrap">码库存</a>
+		<a href="/orders" class="text-gray-600 hover:text-blue-600 whitespace-nowrap">订单管理</a>
+		<a href="/yipay" class="text-gray-600 hover:text-blue-600 whitespace-nowrap">支付设置</a>
+	</div>
+</nav>
+<main class="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6">
+{{end}}
+
+{{define "page_end"}}</main>
+</body>
+</html>{{end}}

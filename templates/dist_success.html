@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>购买成功</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen flex items-center">
+	<div class="max-w-lg mx-auto px-4 py-12 w-full">
+		<div class="bg-white rounded-2xl shadow-lg border p-8 text-center">
+			<div class="text-5xl mb-4">✅</div>
+			<h1 class="text-xl font-bold text-gray-800">购买成功！</h1>
+			<p class="text-gray-500 text-sm mt-1">{{.product.Name}} 已分配到你的账户</p>
+
+			<div class="mt-6 bg-green-50 rounded-xl border border-green-200 p-6">
+				<div class="text-3xl font-bold text-green-600">{{.transferred}}</div>
+				<div class="text-sm text-gray-500 mt-1">个兑换码已分配到名下</div>
+			</div>
+
+			<div class="mt-4 text-xs text-gray-400">
+				<p>回去查看你的兑换码列表</p>
+			</div>
+
+			<div class="mt-6 flex flex-col gap-3">
+				<a href="/dist/{{.dist.Key}}"
+					class="block w-full bg-blue-600 text-white py-3 rounded-xl font-medium text-center text-sm">
+					返回看板查看兑换码
+				</a>
+				<a href="/dist/{{.dist.Key}}/shop"
+					class="block w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-medium text-center text-sm">
+					继续购买
+				</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

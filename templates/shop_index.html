@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI API 兑换码</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+	<div class="max-w-lg mx-auto px-4 py-8">
+		<div class="text-center mb-8">
+			<h1 class="text-2xl font-bold text-gray-800">AI API 兑换码</h1>
+			<p class="text-gray-500 text-sm mt-1">选择面值，购买兑换码</p>
+		</div>
+
+		<div class="grid grid-cols-1 gap-4">
+			{{range .products}}
+			<div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
+				<div class="flex items-center justify-between">
+					<div>
+						<h2 class="text-xl font-bold text-gray-800">{{.Name}}</h2>
+						<p class="text-sm text-gray-400 mt-1">{{.Quota}} 配额</p>
+					</div>
+					<div class="text-right">
+						<div class="text-2xl font-bold text-blue-600">{{money .Price}}<span class="text-sm text-gray-400">元</span></div>
+					</div>
+				</div>
+				<div class="mt-4 flex gap-2">
+					<form method="POST" action="/buy/create" class="flex-1">
+						<input type="hidden" name="product_id" value="{{.Id}}">
+						<button type="submit" name="type" value="alipay"
+							class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors">
+							支付宝
+						</button>
+					</form>
+					<form method="POST" action="/buy/create" class="flex-1">
+						<input type="hidden" name="product_id" value="{{.Id}}">
+						<button type="submit" name="type" value="wxpay"
+							class="w-full bg-green-500 text-white py-3 rounded-xl font-medium active:bg-green-600 transition-colors">
+							微信支付
+						</button>
+					</form>
+				</div>
+			</div>
+			{{else}}
+			<div class="bg-white rounded-2xl shadow-sm border p-12 text-center text-gray-400">
+				暂无商品，敬请期待
+			</div>
+			{{end}}
+		</div>
+
+		<div class="mt-8 text-center text-xs text-gray-400">
+			<p>付款后系统自动发码</p>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+name: Deploy to PROD
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Build
+        run: |
+          CGO_ENABLED=0 go build -o distribution .
+
+      - name: Prepare remote directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            mkdir -p /www/wwwroot/distribution/
+            rm -f /www/wwwroot/distribution/distribution.new
+
+      - name: Upload binary
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: "distribution"
+          target: "/www/wwwroot/distribution/"
+          overwrite: true
+
+      - name: Restart service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            cd /www/wwwroot/distribution
+
+            # 创建 systemd 服务（首次运行）
+            if [ ! -f /etc/systemd/system/distribution.service ]; then
+              cat > /etc/systemd/system/distribution.service <<'SERVICE'
+[Unit]
+Description=Distribution Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/www/wwwroot/distribution
+ExecStart=/www/wwwroot/distribution/distribution
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+              systemctl daemon-reload
+              systemctl enable distribution
+            fi
+
+            # 替换二进制并重启
+            systemctl restart distribution
+            sleep 2
+            systemctl is-active distribution || exit 1
+            echo "✅ distribution 部署完成，已重启"

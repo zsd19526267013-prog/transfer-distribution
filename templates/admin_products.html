@@ -1,0 +1,77 @@
+{{template "page_start" .}}
+
+<div class="flex items-center justify-between mb-6">
+	<h1 class="text-xl md:text-2xl font-bold text-gray-900">商品管理</h1>
+	<button onclick="document.getElementById('newForm').classList.toggle('hidden')"
+		class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 text-sm">
+		+ 新增商品
+	</button>
+</div>
+
+<div id="newForm" class="hidden bg-white rounded-xl shadow-sm border p-4 mb-6">
+	<form method="POST" action="/products/new" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+		<div>
+			<label class="block text-sm font-medium text-gray-600 mb-1">名称</label>
+			<input type="text" name="name" placeholder="如 10元面值" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
+		</div>
+		<div>
+			<label class="block text-sm font-medium text-gray-600 mb-1">价格(分)</label>
+			<input type="number" name="price" placeholder="1000" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
+		</div>
+		<div>
+			<label class="block text-sm font-medium text-gray-600 mb-1">配额</label>
+			<input type="number" name="quota" placeholder="100000" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
+		</div>
+		<div>
+			<label class="block text-sm font-medium text-gray-600 mb-1">排序</label>
+			<input type="number" name="sort_order" value="0" class="w-full border rounded-lg px-3 py-2.5 text-sm">
+		</div>
+		<button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 text-sm md:self-end">创建</button>
+	</form>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+	<table class="w-full text-sm">
+		<thead class="bg-gray-50 text-gray-600">
+			<tr>
+				<th class="text-left px-4 py-3">名称</th>
+				<th class="text-left px-4 py-3">售价</th>
+				<th class="text-left px-4 py-3">配额</th>
+				<th class="text-left px-4 py-3">排序</th>
+				<th class="text-left px-4 py-3">状态</th>
+				<th class="text-left px-4 py-3">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{range .products}}
+			<tr class="border-t hover:bg-gray-50">
+				<td class="px-4 py-3 font-medium">{{.Name}}</td>
+				<td class="px-4 py-3">{{money .Price}} 元</td>
+				<td class="px-4 py-3">{{.Quota}}</td>
+				<td class="px-4 py-3">{{.SortOrder}}</td>
+				<td class="px-4 py-3">
+					{{if .IsActive}}
+					<span class="text-green-600 bg-green-50 px-2 py-0.5 rounded-full text-xs">上架</span>
+					{{else}}
+					<span class="text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full text-xs">下架</span>
+					{{end}}
+				</td>
+				<td class="px-4 py-3 flex gap-2">
+					<form method="POST" action="/products/{{.Id}}/toggle">
+						<button class="text-sm {{if .IsActive}}text-yellow-600{{else}}text-green-600{{end}} hover:underline">
+							{{if .IsActive}}下架{{else}}上架{{end}}
+						</button>
+					</form>
+					<form method="POST" action="/products/{{.Id}}/delete" onsubmit="return confirm('确定删除？')">
+						<button class="text-sm text-red-500 hover:underline">删除</button>
+					</form>
+				</td>
+			</tr>
+			{{else}}
+			<tr><td colspan="6" class="px-4 py-12 text-center text-gray-400">暂无商品</td></tr>
+			{{end}}
+		</tbody>
+	</table>
+</div>
+
+{{template "page_end"}}

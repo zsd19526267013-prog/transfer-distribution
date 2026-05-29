@@ -1,0 +1,32 @@
+{{template "page_start" .}}
+
+<div class="max-w-xs mx-auto pt-16">
+	<div class="text-center mb-8">
+		<div class="w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+			<svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+		</div>
+		<h1 class="text-xl font-bold text-gray-800">分销管理系统</h1>
+		<p class="text-sm text-gray-400 mt-1">请登录后使用</p>
+	</div>
+
+	<form method="POST" action="/login" class="bg-white rounded-2xl border shadow-sm p-6">
+		{{if .err}}
+		<div class="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm text-center">{{.err}}</div>
+		{{end}}
+		<div class="mb-4">
+			<label class="block text-sm font-medium text-gray-600 mb-1.5">用户名</label>
+			<input type="text" name="user" required autocomplete="username"
+				class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+		</div>
+		<div class="mb-6">
+			<label class="block text-sm font-medium text-gray-600 mb-1.5">密码</label>
+			<input type="password" name="pass" required autocomplete="current-password"
+				class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+		</div>
+		<button class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 text-sm font-medium shadow-sm">
+			登 录
+		</button>
+	</form>
+</div>
+
+{{template "page_end" .}}
