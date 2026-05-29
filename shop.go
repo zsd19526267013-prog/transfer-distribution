@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -252,6 +253,7 @@ func yipayNotify(c *gin.Context) {
 		for _, s := range stocks {
 			err := db.Create(&DistributorCode{
 				DistributorId: distId,
+				ProductId:     s.ProductId,
 				CodeKey:       s.CodeKey,
 				CreatedAt:     nowTs,
 			}).Error
@@ -278,4 +280,45 @@ func distShopStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": order.Status,
 	})
+}
+
+// ---------- 分销商：下载兑换码 ----------
+
+func distDownloadCodes(c *gin.Context) {
+	key := c.Param("key")
+	var d Distributor
+	if db.Where("\"key\" = ?", key).First(&d).Error != nil {
+		c.String(404, "无效链接")
+		return
+	}
+
+	productIdStr := c.Query("product_id")
+	productId, _ := strconv.Atoi(productIdStr)
+
+	query := db.Table("dist_codes dc").
+		Select("dc.code_key").
+		Joins("LEFT JOIN redemptions r ON r.key = dc.code_key AND r.deleted_at IS NULL").
+		Where("dc.distributor_id = ?", d.Id).
+		Where("r.id IS NULL OR r.status != 3")
+
+	if productId > 0 {
+		query = query.Where("dc.product_id = ?", productId)
+	}
+
+	type CodeRow struct {
+		CodeKey string
+	}
+	var codes []CodeRow
+	query.Order("dc.id DESC").Find(&codes)
+
+	var sb strings.Builder
+	for _, c := range codes {
+		sb.WriteString(c.CodeKey)
+		sb.WriteString("\n")
+	}
+
+	filename := fmt.Sprintf("%s_兑换码.txt", d.Name)
+	c.Header("Content-Type", "text/plain; charset=utf-8")
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	c.String(200, sb.String())
 }

@@ -218,6 +218,7 @@ func (Distributor) TableName() string { return "dist_distributors" }
 type DistributorCode struct {
 	Id            int    `gorm:"primaryKey"`
 	DistributorId int    `gorm:"index;not null"`
+	ProductId     int    `gorm:"default:0;comment:商品ID"`
 	CodeKey       string `gorm:"type:char(32);uniqueIndex;not null"`
 	CreatedAt     int64  `gorm:"autoCreateTime"`
 }
@@ -462,6 +463,7 @@ func main() {
 	r.POST("/dist/:key/shop/buy", distBuyCreate)
 	r.GET("/dist/:key/shop/status/:id", distShopStatus)
 	r.GET("/dist/:key/shop/success/:id", distBuySuccess)
+	r.GET("/dist/:key/download", distDownloadCodes)
 
 	// ---- 消费者直购 ----
 	r.GET("/buy", directBuyIndex)
@@ -563,6 +565,8 @@ func main() {
 		for _, u := range consumptions {
 			totalCommission += u.Commission
 		}
+		var products []CodeProduct
+		db.Where("is_active = ?", true).Order("sort_order asc, id asc").Find(&products)
 		c.HTML(http.StatusOK, "distributor_view.html", gin.H{
 			"d":               d,
 			"totalCodes":      totalCodes,
@@ -571,6 +575,7 @@ func main() {
 			"codes":           codes,
 			"consumptions":    consumptions,
 			"totalCommission": totalCommission,
+			"products":        products,
 		})
 	})
 
