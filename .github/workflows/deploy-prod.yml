@@ -20,7 +20,7 @@ jobs:
         run: |
           GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o distribution .
 
-      - name: Prepare remote directory
+      - name: Prepare remote directory & stop old process
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -28,6 +28,8 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             mkdir -p /www/wwwroot/distribution/
+            pm2 stop distribution 2>/dev/null || true
+            mv /www/wwwroot/distribution/distribution /www/wwwroot/distribution/distribution.old 2>/dev/null || true
 
       - name: Upload binary
         uses: appleboy/scp-action@v0.1.4
@@ -46,7 +48,7 @@ jobs:
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
-            set -e
             cd /www/wwwroot/distribution
             chmod +x distribution
-            pm2 restart distribution --update-env
+            rm -f distribution.old
+            pm2 start distribution --name distribution --update-env 2>/dev/null || pm2 restart distribution --update-env
