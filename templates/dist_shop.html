@@ -20,7 +20,12 @@
 				<div class="flex items-center justify-between">
 					<div>
 						<h2 class="text-xl font-bold text-gray-800">{{.Name}}</h2>
-						<p class="text-sm text-gray-400 mt-1">配额 {{.Quota}} / 面值 {{money .Price}} 元</p>
+					</div>
+					<div class="text-right">
+						{{if gt .Msrp 0}}
+						<div class="text-sm text-gray-400 line-through">¥{{money .Msrp}}</div>
+						{{end}}
+						<div class="text-2xl font-bold text-blue-600">¥{{money .Price}}</div>
 					</div>
 				</div>
 

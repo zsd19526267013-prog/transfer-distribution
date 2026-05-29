@@ -181,7 +181,8 @@ func (Log) TableName() string { return "logs" }
 type CodeProduct struct {
 	Id        int    `gorm:"primaryKey"`
 	Name      string `gorm:"type:varchar(50);not null"`
-	Price     int    `gorm:"not null;comment:单位:分(1000=10元)"`
+	Price     int    `gorm:"not null;comment:售价(分)"`
+	Msrp      int    `gorm:"default:0;comment:建议零售价(分)"`
 	Quota     int    `gorm:"not null;comment:对应 new-api 额度"`
 	SortOrder int    `gorm:"default:0"`
 	IsActive  bool   `gorm:"default:true"`
@@ -373,6 +374,14 @@ func main() {
 	r.POST("/dist/:key/shop/buy", distBuyCreate)
 	r.GET("/dist/:key/shop/status/:id", distShopStatus)
 	r.GET("/dist/:key/shop/success/:id", distBuySuccess)
+
+	// ---- 消费者直购 ----
+	r.GET("/buy", directBuyIndex)
+	r.POST("/buy/create", directBuyCreate)
+	r.GET("/buy/success/:id", directBuySuccess)
+	r.GET("/buy/status/:id", directBuyStatus)
+	r.GET("/buy/query", directBuyQuery)
+	r.POST("/buy/query", directBuyQueryLookup)
 
 	// ---- 易支付异步回调 ----
 	r.POST("/yipay/notify", yipayNotify)

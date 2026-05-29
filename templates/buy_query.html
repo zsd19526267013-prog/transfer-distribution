@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>查询订单</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen flex items-center">
+	<div class="max-w-sm mx-auto px-4 py-12 w-full">
+		<div class="bg-white rounded-2xl shadow-lg border p-8">
+			<div class="text-center mb-6">
+				<h1 class="text-xl font-bold text-gray-800">查询订单</h1>
+				<p class="text-gray-500 text-sm mt-1">输入订单号查看已购买的兑换码</p>
+			</div>
+
+			{{if .err}}
+			<div class="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm text-center">{{.err}}</div>
+			{{end}}
+
+			<form method="POST" action="/buy/query">
+				<div class="mb-4">
+					<label class="block text-sm font-medium text-gray-600 mb-1.5">订单号</label>
+					<input type="text" name="out_trade_no" required placeholder="输入支付时生成的订单号"
+						class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+				</div>
+				<button class="w-full bg-blue-600 text-white py-3 rounded-xl font-medium active:bg-blue-700 transition-colors text-sm">
+					查询
+				</button>
+			</form>
+
+			<div class="mt-6 text-center">
+				<a href="/buy" class="text-xs text-blue-500 hover:text-blue-700 underline">← 返回购买</a>
+			</div>
+		</div>
+
+		<div class="mt-4 text-xs text-gray-400 text-center">
+			<p>订单号可在支付成功页面或支付记录中找到</p>
+		</div>
+	</div>
+</body>
+</html>

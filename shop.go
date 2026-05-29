@@ -228,29 +228,31 @@ func yipayNotify(c *gin.Context) {
 		return
 	}
 
-	distId := order.DistributorId
-	if distId == 0 {
-		log.Printf("订单 %d 没有关联分销商", order.Id)
-		c.String(200, "ok")
-		return
-	}
-
-	// 标记库存为已售 & 把码分配给分销商
+	// 标记库存为已售
 	nowTs := time.Now().Unix()
 	for _, s := range stocks {
 		db.Model(&s).Update("status", "sold")
-
-		err := db.Create(&DistributorCode{
-			DistributorId: distId,
-			CodeKey:       s.CodeKey,
-			CreatedAt:     nowTs,
-		}).Error
-		if err != nil {
-			log.Printf("分配码 %s 给分销商 %d 失败: %v", s.CodeKey, distId, err)
-		}
 	}
 
-	log.Printf("订单 %s 支付成功，分配 %d 个码给分销商 %d", outTradeNo, len(stocks), distId)
+	distId := order.DistributorId
+	if distId > 0 {
+		// 分销商订单：把码分配给分销商
+		for _, s := range stocks {
+			err := db.Create(&DistributorCode{
+				DistributorId: distId,
+				CodeKey:       s.CodeKey,
+				CreatedAt:     nowTs,
+			}).Error
+			if err != nil {
+				log.Printf("分配码 %s 给分销商 %d 失败: %v", s.CodeKey, distId, err)
+			}
+		}
+		log.Printf("订单 %s 支付成功，分配 %d 个码给分销商 %d", outTradeNo, len(stocks), distId)
+	} else {
+		// 消费者直购：不回写分销商记录，码已标记 sold，成功页展示
+		log.Printf("直购订单 %s 支付成功，码已发放", outTradeNo)
+	}
+
 	c.String(200, "ok")
 }
 

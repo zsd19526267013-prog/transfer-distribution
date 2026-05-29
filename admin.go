@@ -22,6 +22,7 @@ func adminProducts(c *gin.Context) {
 func adminProductNew(c *gin.Context) {
 	name := strings.TrimSpace(c.PostForm("name"))
 	priceStr := strings.TrimSpace(c.PostForm("price"))
+	msrpStr := strings.TrimSpace(c.PostForm("msrp"))
 	quotaStr := strings.TrimSpace(c.PostForm("quota"))
 	sortStr := strings.TrimSpace(c.PostForm("sort_order"))
 
@@ -31,6 +32,7 @@ func adminProductNew(c *gin.Context) {
 	}
 
 	price, _ := strconv.Atoi(priceStr)
+	msrp, _ := strconv.Atoi(msrpStr)
 	quota, _ := strconv.Atoi(quotaStr)
 	sortOrder, _ := strconv.Atoi(sortStr)
 	now := time.Now().Unix()
@@ -38,6 +40,7 @@ func adminProductNew(c *gin.Context) {
 	db.Create(&CodeProduct{
 		Name:      name,
 		Price:     price,
+		Msrp:      msrp,
 		Quota:     quota,
 		SortOrder: sortOrder,
 		IsActive:  true,
