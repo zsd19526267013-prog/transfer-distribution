@@ -45,7 +45,10 @@
 		<tbody>
 			{{range .products}}
 			<tr class="border-t hover:bg-gray-50">
-				<td class="px-4 py-3 font-medium">{{.Name}}</td>
+				<td class="px-4 py-3 font-medium">
+					{{.Name}}
+					<a href="/stock" class="ml-2 text-xs text-blue-500 hover:text-blue-700">导入码</a>
+				</td>
 				<td class="px-4 py-3">{{if gt .Msrp 0}}{{money .Msrp}} 元{{else}}-{{end}}</td>
 				<td class="px-4 py-3">{{money .Price}} 元</td>
 				<td class="px-4 py-3">{{.SortOrder}}</td>
