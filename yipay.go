@@ -72,7 +72,7 @@ func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notify
 		form.Set(k, v)
 	}
 
-	log.Printf("[易支付] 请求 URL=%s pid=%s type=%s money=%s out_trade_no=%s", apiURL, pid, params["type"], params["money"], params["out_trade_no"])
+	log.Printf("[易支付] 请求 URL=%s form=%s", apiURL, form.Encode())
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.PostForm(apiURL, form)
@@ -85,6 +85,8 @@ func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notify
 	if err != nil {
 		return "", fmt.Errorf("读取响应失败: %w", err)
 	}
+
+	log.Printf("[易支付] 响应 body=%s", string(body))
 
 	var result YipayResp
 	if err := json.Unmarshal(body, &result); err != nil {
