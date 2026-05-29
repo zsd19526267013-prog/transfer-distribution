@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"log"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -70,6 +71,8 @@ func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notify
 	for k, v := range params {
 		form.Set(k, v)
 	}
+
+	log.Printf("[易支付] 请求 URL=%s pid=%s type=%s money=%s out_trade_no=%s", apiURL, pid, params["type"], params["money"], params["out_trade_no"])
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.PostForm(apiURL, form)
