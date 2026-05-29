@@ -49,7 +49,7 @@ func yipaySign(params map[string]string, key string) string {
 }
 
 // yipayCreateOrder 调用易支付 V1 MAPI 创建订单，返回支付跳转 URL
-func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notifyURL, returnURL string) (string, error) {
+func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notifyURL, returnURL, clientIP string) (string, error) {
 	params := map[string]string{
 		"pid":          pid,
 		"type":         payType,
@@ -58,6 +58,7 @@ func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notify
 		"return_url":   returnURL,
 		"name":         name,
 		"money":        money,
+		"clientip":     clientIP,
 		"sign_type":    "MD5",
 	}
 	params["sign"] = yipaySign(params, key)

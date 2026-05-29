@@ -135,6 +135,7 @@ func distBuyCreate(c *gin.Context) {
 		money,
 		notifyURL,
 		returnURL,
+		c.ClientIP(),
 	)
 if err != nil {
 		// 支付失败，释放库存
