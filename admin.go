@@ -132,6 +132,52 @@ func adminStock(c *gin.Context) {
 	})
 }
 
+// ---------- 管理员：导入兑换码 ----------
+
+func adminStockImport(c *gin.Context) {
+	productIdStr := c.PostForm("product_id")
+	codesStr := strings.TrimSpace(c.PostForm("codes"))
+
+	pid, err := strconv.Atoi(productIdStr)
+	if err != nil || pid <= 0 || codesStr == "" {
+		c.Redirect(302, "/stock")
+		return
+	}
+
+	lines := strings.Split(codesStr, "\n")
+	now := time.Now().Unix()
+	imported := 0
+	for _, line := range lines {
+		code := strings.TrimSpace(line)
+		if code == "" {
+			continue
+		}
+		// 每行支持用空格/逗号/制表符分隔出多个码
+		for _, part := range strings.FieldsFunc(code, func(r rune) bool {
+			return r == ' ' || r == ',' || r == '\t'
+		}) {
+			part = strings.TrimSpace(part)
+			if part == "" {
+				continue
+			}
+			// 检查是否已存在
+			var exist int64
+			db.Model(&CodeStock{}).Where("code_key = ?", part).Count(&exist)
+			if exist > 0 {
+				continue
+			}
+			db.Create(&CodeStock{
+				ProductId: pid,
+				CodeKey:   part,
+				Status:    "available",
+				CreatedAt: now,
+			})
+			imported++
+		}
+	}
+	c.Redirect(302, "/stock")
+}
+
 // ---------- 管理员：订单管理 ----------
 
 func adminOrders(c *gin.Context) {

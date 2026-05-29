@@ -542,9 +542,10 @@ func main() {
 	admin.POST("/products/:id/toggle", adminProductToggle)
 	admin.POST("/products/:id/delete", adminProductDelete)
 
-		admin.GET("/stock", adminStock)
+	admin.GET("/stock", adminStock)
+	admin.POST("/stock/import", adminStockImport)
 
-		admin.GET("/orders", adminOrders)
+	admin.GET("/orders", adminOrders)
 
 	admin.Any("/yipay", adminYipay)
 
