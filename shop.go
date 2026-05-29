@@ -174,7 +174,7 @@ func distBuySuccess(c *gin.Context) {
 
 	// 检查有多少码已成功划转到该分销商名下
 	var transferred int64
-	db.Model(&DistributorCode{}).Where("order_id = ? AND distributor_id = ?", order.Id, d.Id).Count(&transferred)
+	db.Model(&CodeStock{}).Where("order_id = ? AND status = ?", order.Id, "sold").Count(&transferred)
 
 	c.HTML(http.StatusOK, "dist_success.html", gin.H{
 		"dist":        d,
@@ -195,7 +195,7 @@ func yipayNotify(c *gin.Context) {
 		}
 	}
 
-	if !yipayVerifyCallback(params, cfg.Yipay.SecretKey) {
+	if !yipayVerifyCallback(params, cfg.Yipay.SecretKey, cfg.Yipay.PubKey) {
 		log.Printf("易支付回调验签失败: %v", params)
 		c.String(200, "fail")
 		return

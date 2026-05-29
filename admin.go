@@ -249,6 +249,7 @@ func adminYipay(c *gin.Context) {
 		cfg.Yipay.ApiURL = strings.TrimRight(strings.TrimSpace(c.PostForm("api_url")), "/")
 		cfg.Yipay.MerchantID = strings.TrimSpace(c.PostForm("merchant_id"))
 		cfg.Yipay.SecretKey = strings.TrimSpace(c.PostForm("secret_key"))
+			cfg.Yipay.PubKey = strings.TrimSpace(c.PostForm("pub_key"))
 		cfg.Yipay.Alipay = c.PostForm("alipay") == "1"
 		cfg.Yipay.WechatPay = c.PostForm("wechatpay") == "1"
 		// 写回配置文件

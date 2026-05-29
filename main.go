@@ -34,6 +34,7 @@ type YipayConfig struct {
 	ApiURL     string `json:"api_url"`
 	MerchantID string `json:"merchant_id"`
 	SecretKey  string `json:"secret_key"`
+	PubKey     string `json:"pub_key"`
 	Alipay     bool   `json:"alipay"`
 	WechatPay  bool   `json:"wechatpay"`
 }

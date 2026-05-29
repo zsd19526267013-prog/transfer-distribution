@@ -16,6 +16,10 @@
 			<label class="block text-sm font-medium text-gray-600 mb-1">密钥 (Secret Key)</label>
 			<input type="text" name="secret_key" value="{{.cfg.SecretKey}}" class="w-full border rounded-lg px-3 py-2.5 text-sm font-mono">
 		</div>
+		<div class="mb-4">
+			<label class="block text-sm font-medium text-gray-600 mb-1">平台公钥 (RSA 验签用)</label>
+			<textarea name="pub_key" rows="4" class="w-full border rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----">{{.cfg.PubKey}}</textarea>
+		</div>
 		<div class="mb-6">
 			<label class="block text-sm font-medium text-gray-600 mb-2">启用支付方式</label>
 			<label class="inline-flex items-center mr-6">
