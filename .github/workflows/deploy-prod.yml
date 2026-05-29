@@ -20,7 +20,18 @@ jobs:
         run: |
           CGO_ENABLED=0 go build -o distribution .
 
-      - name: Upload binary (temp name)
+      - name: Prepare remote directory
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            mkdir -p /www/wwwroot/distribution/
+            rm -f /www/wwwroot/distribution/distribution
+            rm -f /www/wwwroot/distribution/distribution.new
+
+      - name: Upload binary
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -28,9 +39,9 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           source: "distribution"
           target: "/www/wwwroot/distribution/"
-          rm: true
+          overwrite: true
 
-      - name: Swap binary & restart via PM2
+      - name: Restart via PM2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_HOST }}
