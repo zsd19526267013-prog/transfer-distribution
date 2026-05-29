@@ -20,17 +20,7 @@ jobs:
         run: |
           CGO_ENABLED=0 go build -o distribution .
 
-      - name: Prepare remote directory
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
-          script: |
-            mkdir -p /www/wwwroot/distribution/
-            rm -f /www/wwwroot/distribution/distribution.new
-
-      - name: Upload binary
+      - name: Upload binary (temp name)
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -38,9 +28,9 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           source: "distribution"
           target: "/www/wwwroot/distribution/"
-          overwrite: true
+          rm: true
 
-      - name: Restart service
+      - name: Swap binary & restart via PM2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_HOST }}
@@ -49,31 +39,8 @@ jobs:
           script: |
             set -e
             cd /www/wwwroot/distribution
-
-            # 创建 systemd 服务（首次运行）
-            if [ ! -f /etc/systemd/system/distribution.service ]; then
-              cat > /etc/systemd/system/distribution.service <<'SERVICE'
-[Unit]
-Description=Distribution Service
-After=network.target
-
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/www/wwwroot/distribution
-ExecStart=/www/wwwroot/distribution/distribution
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-              systemctl daemon-reload
-              systemctl enable distribution
-            fi
-
-            # 替换二进制并重启
-            systemctl restart distribution
+            chmod +x distribution
+            pm2 restart distribution --update-env
             sleep 2
-            systemctl is-active distribution || exit 1
-            echo "✅ distribution 部署完成，已重启"
+            pm2 status distribution
+            echo "✅ 部署完成"
