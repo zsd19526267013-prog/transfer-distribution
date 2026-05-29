@@ -354,6 +354,7 @@ func main() {
 	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 
 	db.AutoMigrate(&Distributor{}, &DistributorCode{}, &CodeProduct{}, &CodeStock{}, &SellOrder{})
+	db.Exec("ALTER TABLE code_products DROP COLUMN IF EXISTS quota")
 
 	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
 		"date": func(ts int64) string {
