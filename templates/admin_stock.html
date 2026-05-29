@@ -2,35 +2,11 @@
 
 <div class="flex items-center justify-between mb-6">
 	<h1 class="text-xl md:text-2xl font-bold text-gray-900">码库存管理</h1>
-	<button onclick="document.getElementById('importForm').classList.toggle('hidden')"
-		class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 text-sm">
-		+ 导入兑换码
-	</button>
 </div>
 
 {{if .msg}}
 <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-4 text-sm">{{.msg}}</div>
 {{end}}
-
-<!-- 导入表单 -->
-<div id="importForm" class="hidden bg-white rounded-xl shadow-sm border p-4 mb-6">
-	<form method="POST" action="/stock/import">
-		<div class="mb-3">
-			<label class="block text-sm font-medium text-gray-600 mb-1">导入到商品</label>
-			<select name="product_id" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
-				<option value="">请选择</option>
-				{{range .products}}
-				<option value="{{.Id}}">{{.Name}} ({{money .Price}}元)</option>
-				{{end}}
-			</select>
-		</div>
-		<div class="mb-3">
-			<label class="block text-sm font-medium text-gray-600 mb-1">兑换码（每行一个）</label>
-			<textarea name="codes" rows="5" class="w-full border rounded-lg px-3 py-2 text-sm font-mono" placeholder="每行一个32位兑换码..."></textarea>
-		</div>
-		<button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 text-sm">导入</button>
-	</form>
-</div>
 
 <!-- 库存列表 -->
 <div class="bg-white rounded-xl shadow-sm border overflow-hidden">

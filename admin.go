@@ -132,47 +132,6 @@ func adminStock(c *gin.Context) {
 	})
 }
 
-func adminStockImport(c *gin.Context) {
-	productId := strings.TrimSpace(c.PostForm("product_id"))
-
-	var product CodeProduct
-	if db.First(&product, productId).Error != nil {
-		c.String(400, "商品不存在")
-		return
-	}
-
-	raw := c.PostForm("codes")
-	lines := strings.Split(raw, "\n")
-	var imported, skipped int
-	now := time.Now().Unix()
-	for _, line := range lines {
-		code := strings.TrimSpace(line)
-		if len(code) != 32 {
-			continue
-		}
-		err := db.Create(&CodeStock{
-			ProductId: product.Id,
-			CodeKey:   code,
-			Status:    "available",
-			CreatedAt: now,
-		}).Error
-		if err != nil {
-			skipped++
-		} else {
-			imported++
-		}
-	}
-
-	var products []CodeProduct
-	db.Where("is_active = ?", true).Find(&products)
-
-	c.HTML(http.StatusOK, "admin_stock.html", gin.H{
-		"products":   products,
-		"msg":        fmt.Sprintf("导入完成：成功 %d 个，跳过 %d 个<br>当前总库存: 可在下方查看", imported, skipped),
-		"rows":       nil,
-	})
-}
-
 // ---------- 管理员：订单管理 ----------
 
 func adminOrders(c *gin.Context) {

@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +52,79 @@ var authSecret = func() []byte {
 	rand.Read(b)
 	return b
 }()
+
+// ---------- 登录限流 ----------
+
+type loginRecord struct {
+	count       int
+	failures    int
+	windowStart time.Time
+	bannedUntil time.Time
+}
+
+var (
+	loginMu    sync.Mutex
+	loginLimit = 10                       // 每分钟最多请求数
+	banAfter   = 20                       // 连续失败上限
+	banDur     = 30 * time.Minute         // IP 封禁时长
+	records    = make(map[string]*loginRecord)
+)
+
+func isBanned(ip string) bool {
+	loginMu.Lock()
+	defer loginMu.Unlock()
+	r, ok := records[ip]
+	if !ok {
+		return false
+	}
+	if time.Now().Before(r.bannedUntil) {
+		return true
+	}
+	if !r.bannedUntil.IsZero() {
+		delete(records, ip)
+	}
+	return false
+}
+
+func checkRateLimit(ip string) bool {
+	loginMu.Lock()
+	defer loginMu.Unlock()
+	now := time.Now()
+	r, ok := records[ip]
+	if !ok {
+		records[ip] = &loginRecord{count: 1, windowStart: now}
+		return true
+	}
+	if now.Sub(r.windowStart) > time.Minute {
+		r.count = 1
+		r.windowStart = now
+		return true
+	}
+	r.count++
+	return r.count <= loginLimit
+}
+
+func recordFailure(ip string) {
+	loginMu.Lock()
+	defer loginMu.Unlock()
+	now := time.Now()
+	r, ok := records[ip]
+	if !ok {
+		records[ip] = &loginRecord{failures: 1, windowStart: now, count: 1}
+		return
+	}
+	r.failures++
+	if r.failures >= banAfter {
+		r.bannedUntil = now.Add(banDur)
+		log.Printf("IP %s 因连续 %d 次登录失败被封禁 %v", ip, banAfter, banDur)
+	}
+}
+
+func recordSuccess(ip string) {
+	loginMu.Lock()
+	defer loginMu.Unlock()
+	delete(records, ip)
+}
 
 func generateSessionToken() string {
 	b := make([]byte, 16)
@@ -331,12 +405,25 @@ func main() {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 	r.POST("/login", func(c *gin.Context) {
+		ip := c.ClientIP()
+
+		if isBanned(ip) {
+			c.HTML(http.StatusOK, "login.html", gin.H{"err": "登录失败次数过多，IP 已被临时封禁，请 30 分钟后再试"})
+			return
+		}
+		if !checkRateLimit(ip) {
+			c.HTML(http.StatusOK, "login.html", gin.H{"err": "请求过于频繁，请稍后再试"})
+			return
+		}
+
 		user := c.PostForm("user")
 		pass := c.PostForm("pass")
 		if user != cfg.AdminUser || pass != cfg.AdminPass {
+			recordFailure(ip)
 			c.HTML(http.StatusOK, "login.html", gin.H{"err": "用户名或密码错误"})
 			return
 		}
+		recordSuccess(ip)
 		exp := time.Now().Add(24 * time.Hour).Unix()
 		payload := fmt.Sprintf("%d", exp)
 		token := payload + "." + signToken(payload)
@@ -455,7 +542,6 @@ func main() {
 	admin.POST("/products/:id/delete", adminProductDelete)
 
 	admin.GET("/stock", adminStock)
-	admin.POST("/stock/import", adminStockImport)
 
 	admin.GET("/orders", adminOrders)
 
