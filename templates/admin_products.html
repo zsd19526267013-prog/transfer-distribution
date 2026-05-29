@@ -9,7 +9,7 @@
 </div>
 
 <div id="newForm" class="hidden bg-white rounded-xl shadow-sm border p-4 mb-6">
-	<form method="POST" action="/products/new" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+	<form method="POST" action="/products/new" class="grid grid-cols-1 md:grid-cols-5 gap-3">
 		<div>
 			<label class="block text-sm font-medium text-gray-600 mb-1">名称</label>
 			<input type="text" name="name" placeholder="如 10元面值" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
@@ -21,10 +21,6 @@
 		<div>
 			<label class="block text-sm font-medium text-gray-600 mb-1">售价(分)</label>
 			<input type="number" name="price" placeholder="1000" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
-		</div>
-		<div>
-			<label class="block text-sm font-medium text-gray-600 mb-1">配额</label>
-			<input type="number" name="quota" placeholder="100000" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
 		</div>
 		<div>
 			<label class="block text-sm font-medium text-gray-600 mb-1">排序</label>
@@ -41,7 +37,6 @@
 				<th class="text-left px-4 py-3">名称</th>
 				<th class="text-left px-4 py-3">建议零售价</th>
 				<th class="text-left px-4 py-3">售价</th>
-				<th class="text-left px-4 py-3">配额</th>
 				<th class="text-left px-4 py-3">排序</th>
 				<th class="text-left px-4 py-3">状态</th>
 				<th class="text-left px-4 py-3">操作</th>
@@ -53,7 +48,6 @@
 				<td class="px-4 py-3 font-medium">{{.Name}}</td>
 				<td class="px-4 py-3">{{if gt .Msrp 0}}{{money .Msrp}} 元{{else}}-{{end}}</td>
 				<td class="px-4 py-3">{{money .Price}} 元</td>
-				<td class="px-4 py-3">{{.Quota}}</td>
 				<td class="px-4 py-3">{{.SortOrder}}</td>
 				<td class="px-4 py-3">
 					{{if .IsActive}}
@@ -74,7 +68,7 @@
 				</td>
 			</tr>
 			{{else}}
-			<tr><td colspan="7" class="px-4 py-12 text-center text-gray-400">暂无商品</td></tr>
+			<tr><td colspan="6" class="px-4 py-12 text-center text-gray-400">暂无商品</td></tr>
 			{{end}}
 		</tbody>
 	</table>

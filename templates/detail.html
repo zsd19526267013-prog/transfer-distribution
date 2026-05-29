@@ -152,13 +152,11 @@
 	</div>
 </div>
 
-<div class="mt-6 flex flex-col md:flex-row gap-2 md:justify-end">
-	<a href="/distributor/{{.d.Id}}/import" class="block text-center bg-blue-600 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-blue-700 text-sm active:bg-blue-800">继续导入码</a>
-	{{if eq .d.SettledAt 0}}
+{{if eq .d.SettledAt 0}}
+<div class="mt-6 flex justify-end">
 	<form method="POST" action="/distributor/{{.d.Id}}/settle" onsubmit="return confirm('确认结清？将清空所有码记录')">
-		<button class="w-full bg-yellow-500 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-yellow-600 text-sm active:bg-yellow-700">标记已结算</button>
+		<button class="bg-yellow-500 text-white px-4 py-3 md:py-2 rounded-lg hover:bg-yellow-600 text-sm active:bg-yellow-700">标记已结算</button>
 	</form>
-	{{end}}
 </div>
-
+{{end}}
 {{template "page_end" .}}

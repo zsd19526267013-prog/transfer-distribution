@@ -183,7 +183,6 @@ type CodeProduct struct {
 	Name      string `gorm:"type:varchar(50);not null"`
 	Price     int    `gorm:"not null;comment:售价(分)"`
 	Msrp      int    `gorm:"default:0;comment:建议零售价(分)"`
-	Quota     int    `gorm:"not null;comment:对应 new-api 额度"`
 	SortOrder int    `gorm:"default:0"`
 	IsActive  bool   `gorm:"default:true"`
 	CreatedAt int64  `gorm:"autoCreateTime"`
@@ -411,44 +410,6 @@ func main() {
 		remark := strings.TrimSpace(c.PostForm("remark"))
 		db.Create(&Distributor{Key: key, Name: name, Remark: remark})
 		c.Redirect(302, "/")
-	})
-
-	// 导入码
-	admin.GET("/distributor/:id/import", func(c *gin.Context) {
-		id := c.Param("id")
-		var d Distributor
-		if db.First(&d, id).Error != nil {
-			c.String(404, "分销员不存在")
-			return
-		}
-		c.HTML(http.StatusOK, "import.html", gin.H{"distributor": d})
-	})
-
-	admin.POST("/distributor/:id/import", func(c *gin.Context) {
-		id := c.Param("id")
-		var d Distributor
-		if db.First(&d, id).Error != nil {
-			c.String(404, "分销员不存在")
-			return
-		}
-		raw := c.PostForm("codes")
-		lines := strings.Split(raw, "\n")
-		var imported, skipped int
-		for _, line := range lines {
-			code := strings.TrimSpace(line)
-			if len(code) != 32 {
-				continue
-			}
-			if err := db.Create(&DistributorCode{DistributorId: d.Id, CodeKey: code}).Error; err != nil {
-				skipped++
-			} else {
-				imported++
-			}
-		}
-		c.HTML(http.StatusOK, "import.html", gin.H{
-			"distributor": d,
-			"msg":         fmt.Sprintf("导入完成：成功 %d 个，跳过 %d 个", imported, skipped),
-		})
 	})
 
 	// 管理员：分销员详情（含二维码和结算操作）

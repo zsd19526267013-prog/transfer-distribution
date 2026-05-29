@@ -20,23 +20,12 @@
 			<select name="product_id" required class="w-full border rounded-lg px-3 py-2.5 text-sm">
 				<option value="">请选择</option>
 				{{range .products}}
-				<option value="{{.Id}}">{{.Name}} ({{money .Price}}元 / {{.Quota}}配额)</option>
+				<option value="{{.Id}}">{{.Name}} ({{money .Price}}元)</option>
 				{{end}}
 			</select>
 		</div>
 		<div class="mb-3">
-			<label class="block text-sm font-medium text-gray-600 mb-2">导入方式</label>
-			<label class="inline-flex items-center mr-4">
-				<input type="radio" name="method" value="auto" checked class="mr-1">
-				<span class="text-sm">从 redemptions 自动拉取</span>
-			</label>
-			<label class="inline-flex items-center">
-				<input type="radio" name="method" value="manual" class="mr-1">
-				<span class="text-sm">手动粘贴</span>
-			</label>
-		</div>
-		<div class="mb-3">
-			<label class="block text-sm font-medium text-gray-600 mb-1">兑换码（手动模式，每行一个）</label>
+			<label class="block text-sm font-medium text-gray-600 mb-1">兑换码（每行一个）</label>
 			<textarea name="codes" rows="5" class="w-full border rounded-lg px-3 py-2 text-sm font-mono" placeholder="每行一个32位兑换码..."></textarea>
 		</div>
 		<button class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 text-sm">导入</button>

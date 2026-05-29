@@ -23,17 +23,15 @@ func adminProductNew(c *gin.Context) {
 	name := strings.TrimSpace(c.PostForm("name"))
 	priceStr := strings.TrimSpace(c.PostForm("price"))
 	msrpStr := strings.TrimSpace(c.PostForm("msrp"))
-	quotaStr := strings.TrimSpace(c.PostForm("quota"))
 	sortStr := strings.TrimSpace(c.PostForm("sort_order"))
 
-	if name == "" || priceStr == "" || quotaStr == "" {
+	if name == "" || priceStr == "" {
 		c.String(400, "参数不完整")
 		return
 	}
 
 	price, _ := strconv.Atoi(priceStr)
 	msrp, _ := strconv.Atoi(msrpStr)
-	quota, _ := strconv.Atoi(quotaStr)
 	sortOrder, _ := strconv.Atoi(sortStr)
 	now := time.Now().Unix()
 
@@ -41,7 +39,6 @@ func adminProductNew(c *gin.Context) {
 		Name:      name,
 		Price:     price,
 		Msrp:      msrp,
-		Quota:     quota,
 		SortOrder: sortOrder,
 		IsActive:  true,
 		CreatedAt: now,
@@ -137,7 +134,6 @@ func adminStock(c *gin.Context) {
 
 func adminStockImport(c *gin.Context) {
 	productId := strings.TrimSpace(c.PostForm("product_id"))
-	method := c.PostForm("method")
 
 	var product CodeProduct
 	if db.First(&product, productId).Error != nil {
@@ -145,60 +141,25 @@ func adminStockImport(c *gin.Context) {
 		return
 	}
 
+	raw := c.PostForm("codes")
+	lines := strings.Split(raw, "\n")
 	var imported, skipped int
-
-	if method == "auto" {
-		// 从 redemptions 表自动拉取匹配额度的未使用兑换码
-		type RedemptionCode struct {
-			Key string
+	now := time.Now().Unix()
+	for _, line := range lines {
+		code := strings.TrimSpace(line)
+		if len(code) != 32 {
+			continue
 		}
-		codes := []RedemptionCode{}
-		db.Raw(`
-			SELECT r."key" FROM redemptions r
-			WHERE r.quota = ? AND r.status = 1 AND r.deleted_at IS NULL
-			AND r."key" NOT IN (SELECT code_key FROM code_stock)
-			ORDER BY r.id ASC
-		`, product.Quota).Scan(&codes)
-
-		now := time.Now().Unix()
-		for _, c := range codes {
-			key := strings.TrimSpace(c.Key)
-			if key == "" {
-				continue
-			}
-			err := db.Create(&CodeStock{
-				ProductId: product.Id,
-				CodeKey:   key,
-				Status:    "available",
-				CreatedAt: now,
-			}).Error
-			if err != nil {
-				skipped++
-			} else {
-				imported++
-			}
-		}
-	} else {
-		// 手动粘贴
-		raw := c.PostForm("codes")
-		lines := strings.Split(raw, "\n")
-		now := time.Now().Unix()
-		for _, line := range lines {
-			code := strings.TrimSpace(line)
-			if len(code) != 32 {
-				continue
-			}
-			err := db.Create(&CodeStock{
-				ProductId: product.Id,
-				CodeKey:   code,
-				Status:    "available",
-				CreatedAt: now,
-			}).Error
-			if err != nil {
-				skipped++
-			} else {
-				imported++
-			}
+		err := db.Create(&CodeStock{
+			ProductId: product.Id,
+			CodeKey:   code,
+			Status:    "available",
+			CreatedAt: now,
+		}).Error
+		if err != nil {
+			skipped++
+		} else {
+			imported++
 		}
 	}
 
