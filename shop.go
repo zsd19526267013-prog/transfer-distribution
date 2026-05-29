@@ -114,6 +114,17 @@ func distBuyCreate(c *gin.Context) {
 	notifyURL := cfg.BaseURL + "/yipay/notify"
 	returnURL := cfg.BaseURL + fmt.Sprintf("/dist/%s/shop/success/%d", key, order.Id)
 
+	if cfg.Yipay.ApiURL == "" {
+		for i := range stocks {
+			db.Model(&stocks[i]).Updates(map[string]any{
+				"status":   "available",
+				"order_id": 0,
+			})
+		}
+		db.Delete(&order)
+		c.String(500, "支付系统异常: 易支付未配置，请先联系管理员设置支付参数")
+		return
+	}
 	payURL, err := yipayCreateOrder(
 		cfg.Yipay.ApiURL,
 		cfg.Yipay.MerchantID,
@@ -124,8 +135,9 @@ func distBuyCreate(c *gin.Context) {
 		money,
 		notifyURL,
 		returnURL,
+		c.ClientIP(),
 	)
-	if err != nil {
+if err != nil {
 		// 支付失败，释放库存
 		for i := range stocks {
 			db.Model(&stocks[i]).Updates(map[string]any{

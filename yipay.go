@@ -3,10 +3,10 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"log"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -18,8 +18,8 @@ type YipayResp struct {
 	Code    int    `json:"code"`
 	Msg     string `json:"msg"`
 	TradeNo string `json:"trade_no"`
-	PayURL  string `json:"payurl"`
-	QRCode  string `json:"qrcode"`
+	PayType string `json:"pay_type"`
+	PayInfo string `json:"pay_info"`
 }
 
 func yipaySign(params map[string]string, key string) string {
@@ -32,7 +32,7 @@ func yipaySign(params map[string]string, key string) string {
 	var sb strings.Builder
 	for _, k := range keys {
 		v := params[k]
-		if v == "" {
+		if v == "" || k == "sign" || k == "sign_type" {
 			continue
 		}
 		if sb.Len() > 0 {
@@ -48,23 +48,28 @@ func yipaySign(params map[string]string, key string) string {
 	return hex.EncodeToString(h[:])
 }
 
-// yipayCreateOrder 调用易支付创建订单，返回支付跳转 URL
-func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notifyURL, returnURL string) (string, error) {
+// yipayCreateOrder 调用 keyingpay 创建订单，返回支付跳转 URL
+func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notifyURL, returnURL, clientIP string) (string, error) {
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+
 	params := map[string]string{
 		"pid":          pid,
+		"method":       "jump",
 		"type":         payType,
 		"out_trade_no": outTradeNo,
 		"notify_url":   notifyURL,
 		"return_url":   returnURL,
 		"name":         name,
 		"money":        money,
+		"clientip":     clientIP,
+		"timestamp":    timestamp,
 		"sign_type":    "MD5",
 	}
 	params["sign"] = yipaySign(params, key)
 
 	apiURL = strings.TrimRight(apiURL, "/")
-	if !strings.Contains(apiURL, "/api.php") {
-		apiURL += "/api.php"
+	if !strings.HasSuffix(apiURL, "/api/pay/create") {
+		apiURL += "/api/pay/create"
 	}
 
 	form := url.Values{}
@@ -92,17 +97,18 @@ func yipayCreateOrder(apiURL, pid, key, outTradeNo, payType, name, money, notify
 	if err := json.Unmarshal(body, &result); err != nil {
 		return "", fmt.Errorf("解析响应失败: %s", string(body))
 	}
-	if result.Code != 1 {
-		return "", fmt.Errorf("易支付返回错误: %s", result.Msg)
+	if result.Code != 0 {
+		errMsg := result.Msg
+		if errMsg == "" {
+			errMsg = "未知错误"
+		}
+		return "", fmt.Errorf("易支付返回错误: %s", errMsg)
 	}
 
-	if result.PayURL != "" {
-		return result.PayURL, nil
+	if result.PayInfo != "" {
+		return result.PayInfo, nil
 	}
-	if result.QRCode != "" {
-		return result.QRCode, nil
-	}
-	return "", fmt.Errorf("易支付未返回支付链接")
+	return "", fmt.Errorf("易支付未返回支付信息")
 }
 
 // yipayVerifyCallback 验证易支付回调签名
@@ -112,7 +118,6 @@ func yipayVerifyCallback(params map[string]string, key string) bool {
 		return false
 	}
 
-	// sign_type 不参与签名
 	delete(params, "sign")
 	delete(params, "sign_type")
 
