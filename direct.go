@@ -102,7 +102,6 @@ func directBuyCreate(c *gin.Context) {
 		money,
 		notifyURL,
 		returnURL,
-		c.ClientIP(),
 	)
 	if err != nil {
 		db.Model(&stock).Updates(map[string]any{

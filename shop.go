@@ -135,7 +135,6 @@ func distBuyCreate(c *gin.Context) {
 		money,
 		notifyURL,
 		returnURL,
-		c.ClientIP(),
 	)
 if err != nil {
 		// 支付失败，释放库存
@@ -195,7 +194,7 @@ func yipayNotify(c *gin.Context) {
 		}
 	}
 
-	if !yipayVerifyCallback(params, cfg.Yipay.SecretKey, cfg.Yipay.PubKey) {
+	if !yipayVerifyCallback(params, cfg.Yipay.SecretKey) {
 		log.Printf("易支付回调验签失败: %v", params)
 		c.String(200, "fail")
 		return
