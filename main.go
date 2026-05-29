@@ -297,6 +297,23 @@ func main() {
 		"money": func(price int) string {
 			return fmt.Sprintf("%.2f", float64(price)/100)
 		},
+		"human": func(n interface{}) string {
+			var v float64
+			switch x := n.(type) {
+			case int64:
+				v = float64(x)
+			case int:
+				v = float64(x)
+			case float64:
+				v = x
+			default:
+				return fmt.Sprint(n)
+			}
+			if v >= 10000 {
+				return fmt.Sprintf("%.1fw", v/10000)
+			}
+			return fmt.Sprint(int64(v))
+		},
 		"formatCodeKey": func(s string) string {
 			return template.HTMLEscapeString(s)
 		},
