@@ -297,12 +297,13 @@ func distDownloadCodes(c *gin.Context) {
 
 	query := db.Table("dist_codes dc").
 		Select("dc.code_key").
+		Joins("LEFT JOIN code_stock cs ON cs.code_key = dc.code_key").
 		Joins("LEFT JOIN redemptions r ON r.key = dc.code_key AND r.deleted_at IS NULL").
 		Where("dc.distributor_id = ?", d.Id).
 		Where("r.id IS NULL OR r.status != 3")
 
 	if productId > 0 {
-		query = query.Where("dc.product_id = ?", productId)
+		query = query.Where("COALESCE(dc.product_id, cs.product_id, 0) = ?", productId)
 	}
 
 	type CodeRow struct {
