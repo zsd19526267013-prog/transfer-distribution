@@ -473,6 +473,12 @@ func main() {
 	r.GET("/buy/query", directBuyQuery)
 	r.POST("/buy/query", directBuyQueryLookup)
 
+	// ---- 发卡地址 ----
+	r.GET("/card", cardIndex)
+	r.POST("/card/buy", cardBuy)
+	r.GET("/card/success/:id", cardSuccess)
+	r.GET("/card/status/:id", cardStatus)
+
 	// ---- 易支付异步回调 ----
 	r.POST("/yipay/notify", yipayNotify)
 	r.GET("/yipay/notify", yipayNotify)
